@@ -1,0 +1,33 @@
+<i class="close icon"></i>
+<div class="header">
+    Friend Request
+</div>
+<div class="image content">
+    <div class="ui medium image">
+        <img src="{{ friend.avatar.url }}">
+    </div>
+    <div class="description">
+
+        {% if isWaiting %}
+            <div class="ui header">
+                Your friend request is not accepted yet!
+            </div>
+            <p>
+                {{ friend.nick }} is not accept your request yet.
+            </p>
+        {% else %}
+            <div class="ui header">
+                Your friend request is sent successfully.
+            </div>
+            <p>
+                You can chat with {{ friend.nick }} after your request accepted.
+            </p>
+        {% endif %}
+
+    </div>
+</div>
+<div class="actions">
+    <div class="ui green deny button">
+        OK
+    </div>
+</div>

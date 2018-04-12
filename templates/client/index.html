@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body %}
+    <div class="ui top attached menu">
+        <a href="/" class="item">
+            <img src="{% static "imagefiles/logo.png" %}" alt="chatLeshLogo">
+        </a>
+        <a class="item online-users">
+            <i class="users icon"></i> Online Users
+        </a>
+        <a class="notify item" onclick="clearAnimation(notifyInterval, $(this).attr('id'))" id="notifyMenu">
+            <i class="globe icon"></i> Notifications
+        </a>
+        <a href="{% url "logout" %}" id="logoutBtn" class="item right floated">
+            <i class="power off icon"></i> Log Out
+        </a>
+    </div>
+    <div class="ui flowing basic admission popup">
+        <div class="ui column relaxed divided grid">
+            <div class="column">
+                <div class="ui link list" id="notifyList">
+                    {% for foo in friendRequests %}
+                        <script>
+                            requestsID.push({{ foo.id }});
+                        </script>
+                        <a onclick="friendRequestAccept('{{ foo.id }}')" class="item">{{ foo.user.nick }} is send you a friend request.</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="ui bottom attached segment">
+        <div class="ui labeled icon left inline vertical demo sidebar menu" id="onlineUserList"></div>
+        <div class="pusher">
+            <div class="ui basic segment" id="chatPanelDiv"></div>
+        </div>
+    </div>
+    <div class="ui modal" id="friendshipModal"></div>
+{% endblock %}
+{% block scripts %}
+    <script>
+        $('.ui.sidebar').sidebar({
+            context: $('.bottom.segment'),
+            transition: 'scale down'
+        }).sidebar('attach events', '.menu .online-users');
+        $('a.notify.item')
+            .popup({
+                popup: $('.ui.flowing.basic.admission.popup'),
+                on: 'click',
+                position: 'bottom left',
+                lastResort: true,
+            })
+        ;
+    </script>
+    <script type="text/javascript" src="{% static "websocket.min.js" %}"></script>
+    <script>
+        function loadChatPanel(threadID) {
+            $.ajax({
+                url: "/mesajlar/openChatPanel/"+threadID+"/",
+                success: function (result) {
+                    $('#chatPanelDiv').html("").append(result)
+                }
+            })
+        }
+
+        function friendOrChatRequest(usernickName) {
+            $.ajax({
+                url: "{% url "friendOrChatRequest" %}",
+                type: "post",
+                data: {
+                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                    usernickName: usernickName
+                },
+                success: function (result) {
+                    if (result.msg === 'openChat') {
+                        console.log("openchat");
+                        loadChatPanel(''+result.threadID+'');
+                    } else {
+                        $('#friendshipModal').html("").append(result).modal('show');
+                    }
+                }
+            })
+        }
+
+        function friendRequestAccept(requestID) {
+            $.ajax({
+                url: "{% url "friendRequestAccept" %}",
+                type: "post",
+                data: {
+                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                    requestID: requestID
+                },
+                success: function (result) {
+                    $('#friendshipModal').html("").append(result).modal("show");
+                }
+            })
+        }
+        function fadeInfadeOut(elementID) {
+            notifyInterval = setInterval(function () {
+                var sendedElement = $('#'+elementID+'');
+                sendedElement.css('color', 'red').find('i').css('color', 'red');
+                sendedElement.fadeOut(1000).fadeIn(1000);
+            }, 1000)
+        }
+
+        function clearAnimation(sendedInternal, elementID) {
+            clearInterval(sendedInternal);
+            var sendedElement = $('#'+elementID+'');
+            sendedElement.css('color', 'black').find('i').css('color', 'black');
+        }
+
+        {% if friendRequests|length > 0 %}
+            fadeInfadeOut('notifyMenu');
+        {% endif %}
+
+        function checkFriendRequest() {
+            $.ajax({
+                url: "{% url "checkFriendRequests" %}",
+                type: "post",
+                data: {
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                },
+                success: function (result) {
+                    $('#notifyList').html("");
+                    $.each(result, function (key, val) {
+                        if (jQuery.inArray(val.requestID, requestsID) !== -1) {
+                            $('#notifyList').html("").append(
+                                '<a onclick="friendRequestAccept(\'' + val.requestID + '\')" class="item">' + val.friendNick + ' is send you a friend request</a>'
+                            )
+                        } else {
+                            requestsID.push(val.requestID);
+                            fadeInfadeOut('notifyMenu');
+                            friendRequestAccept(""+val.requestID+"");
+                        }
+                    })
+                }
+            })
+        }
+
+        function checkOnlineUsers(type) {
+            $.ajax({
+                url: "{% url "onlineUsers" %}",
+                type: "post",
+                data: {
+                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                    nick: "{{ request.user.nick }}",
+                    ip: "{{ request.user.ip }}",
+                    type: type
+                },
+                success: function (result) {
+                    $('#onlineUserList').html("");
+                    $.each(result, function (key, value) {
+                        var currentUser = '{{ request.user }}';
+                        if (currentUser !== value.userNickName) {
+                            $('#onlineUserList').append(
+                                '<a class="item" onclick="friendOrChatRequest(\'' + value.userNickName + '\')">' +
+                                '<img width="50" height="50" style="border-radius: 50%;" src="' + value.userAvatar + '">' +
+                                '<span>' + value.userNickName + '<span>' +
+                                '</a>'
+                            )
+                        }
+                    })
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            setInterval(function () {
+                checkOnlineUsers('onOpen');
+                checkFriendRequest();
+            }, 15000);
+        });
+        $(function () {
+            var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+            var chatsock = new ReconnectingWebSocket(ws_scheme + '://' + window.location.host + ':8001/mesajlar/connect/');
+
+            chatsock.onopen = function () {
+                checkOnlineUsers('onOpen')
+            };
+
+            $('#logoutBtn').on('click', function () {
+                chatsock.close();
+                checkOnlineUsers('onClose');
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="b83776bc-c1a9-4522-a654-492544fa7428" name="yazlab.xyz" url="http://173.249.0.254/">
+        <fileTransfer host="yazlab.xyz" port="22" rootFolder="/var/www/vhosts/yazlab.xyz" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="fba22a4f-a8b8-431b-84e2-f3d3c67f2abd" name="yazlab.xyz.root" url="http://173.249.0.254/">
+        <fileTransfer host="yazlab.xyz" port="22" rootFolder="/var/www/vhosts/yazlab.xyz/chatlesh.yazlab.xyz" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

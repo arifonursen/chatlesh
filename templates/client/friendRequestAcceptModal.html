@@ -1,0 +1,41 @@
+<i class="close icon"></i>
+<div class="header">
+    {{ friendRequest.user.nick }} friend request
+</div>
+<div class="image content">
+    <div class="ui medium image">
+        <img src="{{ friendRequest.user.avatar.url }}">
+    </div>
+    <div class="description">
+        <div class="ui header">Do you want to accept {{ friendRequest.user.nick }} friend request ?</div>
+        <p>If accept this request {{ friendRequest.user.nick }} can send you a message</p>
+    </div>
+</div>
+<div class="actions">
+    <div class="ui black deny button">
+        NO
+    </div>
+    <div onclick="acceptRequest('{{ friendRequest.id }}')" class="ui positive right labeled icon button">
+        YES
+        <i class="checkmark icon"></i>
+    </div>
+</div>
+<script>
+    function acceptRequest(requestID) {
+        $.ajax({
+            url: "{% url "acceptRequest" %}",
+            type: "post",
+            data: {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                requestID: requestID
+            },
+            success: function (result) {
+                if (result.msg === 'success') {
+                    $('#friendshipModal').modal('close');
+                } else {
+                    alert("Opps! Some error occured...");
+                }
+            }
+        })
+    }
+</script>

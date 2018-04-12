@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div class="ui middle aligned center aligned grid">
+        <div class="column">
+            <h2 class="ui teal image header">
+                <div class="content">
+                    Sign-in | Sign-up your account
+                </div>
+            </h2>
+            <form class="ui large form" name="LogRegForm" method="post" enctype="multipart/form-data">
+                {% if loginError %}
+                    <div class="ui message">
+                        <div class="header">
+                            {{ loginError }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% csrf_token %}
+                <div class="ui stacked segment">
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="user icon"></i>
+                            <input type="text" required name="nickName" placeholder="Enter Nick Name">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="globe icon"></i>
+                            <input type="text" required name="ipAddress" value="{{ userIP }}">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="ui left icon input">
+                            <i class="file icon">Avatar</i>
+                            <input type="file" id="id_avatar" name="avatar">
+                        </div>
+                    </div>
+                    <button type="submit" class="ui fluid large teal submit button">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,123 @@
+<style>
+    ::-webkit-scrollbar {
+        width: 0 !important;
+    }
+    #chatMessages {
+        width: 855px;
+        height: 580px;
+        overflow-y: scroll;
+    }
+    @media screen and (max-width: 1366px) {
+        #chatMessages {
+            width: 810px;
+            height: 540px;
+            overflow-y: scroll;
+        }
+    }
+</style>
+<div class="ui internally celled grid">
+    <div class="row">
+        <div class="three wide column center aligned">
+            <div class="ui card">
+                <div>
+                    <img width="200" src="{{ request.user.avatar.url }}" alt="">
+                </div>
+                <div class="content">
+                    <a class="header">{{ request.user.nick }}</a>
+                    <div class="meta">
+                        <span class="date">{{ request.user.date_joined }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="ten wide column">
+            <div class="row" id="chatMessages">
+                {% for foo in messages %}
+                    {% if request.user == foo.sender %}
+                        <div class="ui blue message" style="width: 70%; float: left;">
+                            <img class="ui avatar image" src="{{ request.user.avatar.url }}" alt="">
+                            <span>{{ foo.text }}</span>
+                        </div>
+                    {% else %}
+                        <div class="ui green message" style="width: 70%; float: right;">
+                            <img class="ui avatar image" src="{{ receiver.avatar.url }}" alt="">
+                            <span>{{ foo.text }}</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="row">
+                <form class="ui reply form" id="sendMessageForm" style="position: fixed !important; bottom: 10px !important; width: 59.5%;">
+                    <div class="field">
+                        <input id="msgInput" type="text" placeholder="your message...">
+                    </div>
+                    <button style="position: relative; bottom: 51px;" class="ui right floated green submit icon button">
+                        <i class="icon send"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="three wide right floated column center aligned">
+            <div class="ui card">
+                <div>
+                    <img width="200" src="{{ receiver.avatar.url }}" alt="">
+                </div>
+                <div class="content">
+                    <a class="header">{{ receiver.nick }}</a>
+                    <div class="meta">
+                        <span class="date">{{ receiver.date_joined }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        var chat = $("#chatMessages");
+        chat.animate({scrollTop: 9999}, 'fast');
+        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        var chatsock = new ReconnectingWebSocket(ws_scheme + '://' + window.location.host + ':8001/mesajlar/openChatPanel/{{ thread.key }}/');
+        chatsock.onopen = function () {
+            chatsock.send(JSON.stringify({sender: {{ request.user.id }}, text: null, window_open: true}));
+        };
+
+        chatsock.onmessage = function (message) {
+            var data = JSON.parse(message.data);
+            var user = '{{ request.user.nick }}';
+            if (user === data.sender) {
+                var sendedMessage =
+                    '<div class="ui blue message" style="width: 70%; float: left;">' +
+                        '<img class="ui avatar image" src="{{ request.user.avatar.url }}" alt="">' +
+                            '<span>'+data.text+'</span>' +
+                    '</div>';
+            }
+            else {
+                var sendedMessage =
+                    '<div class="ui green message" style="width: 70%; float: right;">' +
+                        '<img class="ui avatar image" src="{{ receiver.avatar.url }}" alt="">' +
+                        '<span>'+data.text+'</span>' +
+                    '</div>';
+            }
+            chat.append(sendedMessage);
+            chat.animate({scrollTop: 9999}, 'fast');
+        };
+
+        $("#sendMessageForm").on("submit", function (event) {
+            chat.animate({scrollTop: 9999}, 'fast');
+            var msgInput = $('#msgInput');
+            console.log(msgInput.val());
+            var message = {
+                sender: {{ request.user.id }},
+                text: msgInput.val()
+            };
+            chatsock.send(JSON.stringify(message));
+            msgInput.val('').focus();
+            return false;
+        });
+        {#$('#message_view_modal').on('hidden.bs.modal', function () {#}
+        {#    chatsock.close();#}
+        {# });#}
+    });
+</script>
