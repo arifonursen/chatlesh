@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '5^wraoa1^q5bargyx*++$w_6v%qu#nt$v_+jgmlr-fpneb*fv3'
+SECRET_KEY = 'your secret key'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -98,10 +98,10 @@ WSGI_APPLICATION = 'ChatLesh.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'USER': 'chatLeshAdmin',
-        'PASSWORD': 'jRu2b7*4',
+        'USER': 'dbUser',
+        'PASSWORD': 'dbPassword',
         'PORT': '3306',
-        'NAME': 'chatLeshDB',
+        'NAME': 'dbName',
     }
 }
 
