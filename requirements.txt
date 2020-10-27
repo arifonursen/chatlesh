@@ -10,7 +10,7 @@ cffi==1.11.5
 channels==1.1.8
 chardet==3.0.4
 constantly==15.1.0
-cryptography==2.1.4
+cryptography==3.2
 daphne==1.4.2
 Django==2.0.3
 django-bower==5.2.0
